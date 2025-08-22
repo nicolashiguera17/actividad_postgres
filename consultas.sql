@@ -292,3 +292,23 @@ END;
 $$;
 
 SELECT miscompras.fn_total_compra(1);
+
+-- 23. Define un trigger `AFTER INSERT` sobre `compras_productos` que descuente stock mediante una función
+
+CREATE OR REPLACE FUNCTION miscompras.fn_descontar_stock()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE miscompras.productos
+    SET cantidad_stock = GREATEST(cantidad_stock - NEW.cantidad, 0)
+    WHERE id_producto = NEW.id_producto;
+    
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER tr_descontar_stock
+    AFTER INSERT ON miscompras.compras_productos
+    FOR EACH ROW
+    EXECUTE FUNCTION miscompras.fn_descontar_stock();
