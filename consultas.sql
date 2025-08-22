@@ -116,3 +116,14 @@ JOIN compras c ON c.id_cliente = cl.id
 JOIN compras_productos cp ON cp.id_compra = c.id_compra
 WHERE cp.estado = 1
 ORDER BY c.id_cliente, c.fecha DESC;
+
+-- 11. Devuelve los 2 productos más vendidos por categoría
+
+SELECT p.nombre, ca.descripcion, cp.cantidad
+FROM miscompras.productos p
+JOIN compras_productos cp ON cp.id_producto = p.id_producto
+JOIN miscompras.categorias ca ON ca.id_categoria = p.id_categoria
+WHERE cp.estado = 1
+GROUP BY p.nombre, ca.descripcion, cp.cantidad
+ORDER BY cantidad DESC
+LIMIT 2;
