@@ -217,3 +217,21 @@ FROM miscompras.productos
 WHERE id_producto % 2 = 0
     AND estado = 1
 ORDER BY id_producto;
+
+
+-- 19. Crea una vista ventas_por_compra que consolide `id_compra`,` id_cliente`, `fecha` y el `SUM(total)` por compra
+
+CREATE OR REPLACE VIEW ventas_por_compra AS
+SELECT 
+    c.id_compra,
+    c.id_cliente,
+    c.fecha,
+    SUM(cp.total) AS total_compra
+FROM miscompras.compras c
+JOIN miscompras.compras_productos cp USING (id_compra)
+WHERE cp.estado = 1
+GROUP BY c.id_compra, c.id_cliente, c.fecha;
+
+DROP VIEW IF EXISTS ventas_por_compra;
+
+SELECT * FROM ventas_por_compra;
