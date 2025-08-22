@@ -93,3 +93,15 @@ JOIN miscompras.compras_productos cp USING(id_producto)
 WHERE cp.estado = 1
 GROUP BY ca.id_categoria, ca.descripcion
 ORDER BY porcentaje_participacion DESC;
+
+-- 9. Clasifica el nivel de stock de productos activos (`CRÍTICO/BAJO/OK`)
+
+SELECT nombre AS producto,
+    CASE
+        WHEN cantidad_stock <= 150 THEN 'CRÍTICO'
+        WHEN cantidad_stock <= 350 THEN 'BAJO'
+        ELSE 'OK'
+    END AS nivel_stock
+FROM miscompras.productos
+WHERE estado = 1
+ORDER BY cantidad_stock ASC
