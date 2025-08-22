@@ -20,3 +20,14 @@ JOIN productos p ON cp.id_producto = p.id_producto
 JOIN categorias c ON p.id_categoria = c.id_categoria
 GROUP BY c.id_categoria, c.descripcion
 ORDER BY total_vendidos DESC;
+
+-- 3 Clientes que han gastado más dinero --
+SELECT c.id, 
+       c.nombre, 
+       c.apellidos,
+       SUM(cp.total) AS gasto_total
+FROM clientes c
+JOIN compras co ON c.id = co.id_cliente
+JOIN compras_productos cp ON co.id_compra = cp.id_compra
+GROUP BY c.id, c.nombre, c.apellidos
+ORDER BY gasto_total DESC;
