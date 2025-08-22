@@ -272,3 +272,23 @@ FROM (
 WHERE productos.id_producto = vendido.id_producto;
 
 SELECT * FROM productos;
+-- 22. Implementa una función PL/pgSQL (`miscompras.fn_total_compra`) que reciba `p_id_compra` y retorne el `total`
+
+CREATE OR REPLACE FUNCTION miscompras.fn_total_compra(p_id_compra INT)
+RETURNS NUMERIC(16,2)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_total NUMERIC(16,2);
+BEGIN
+    SELECT COALESCE(SUM(total), 0)
+    INTO v_total
+    FROM miscompras.compras_productos
+    WHERE id_compra = p_id_compra 
+        AND estado = 1;
+    
+    RETURN v_total;
+END;
+$$;
+
+SELECT miscompras.fn_total_compra(1);
