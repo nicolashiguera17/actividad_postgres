@@ -312,3 +312,15 @@ CREATE TRIGGER tr_descontar_stock
     AFTER INSERT ON miscompras.compras_productos
     FOR EACH ROW
     EXECUTE FUNCTION miscompras.fn_descontar_stock();
+
+-- 24. Asigna la “posición por precio” de cada producto dentro de su categoría
+
+SELECT 
+    ca.descripcion AS categoria,
+    p.nombre,
+    p.precio_venta,
+    DENSE_RANK() OVER (PARTITION BY ca.id_categoria ORDER BY p.precio_venta DESC) AS posicion_precio
+FROM miscompras.productos p
+JOIN miscompras.categorias ca USING (id_categoria)
+WHERE p.estado = 1
+ORDER BY categoria, posicion_precio;
