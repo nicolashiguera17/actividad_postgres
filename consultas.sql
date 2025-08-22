@@ -188,3 +188,13 @@ SELECT
 FROM miscompras.productos
 WHERE estado = 1
 ORDER BY margen_porcentual DESC;
+
+-- 16. Filtra clientes de un dominio dado
+
+SELECT 
+    nombre,
+    apellidos,
+    TRIM(correo_electronico) AS email
+FROM miscompras.clientes
+WHERE TRIM(correo_electronico) ~* '.*@example.com$'
+ORDER BY apellidos, nombre;
