@@ -198,3 +198,11 @@ SELECT
 FROM miscompras.clientes
 WHERE TRIM(correo_electronico) ~* '.*@example.com$'
 ORDER BY apellidos, nombre;
+
+-- 17. Normaliza nombres y apellidos de clientes
+
+SELECT 
+    INITCAP(TRIM(nombre)) AS nombre,
+    INITCAP(TRIM(apellidos)) AS apellidos
+FROM miscompras.clientes
+ORDER BY apellidos, nombre;
