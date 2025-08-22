@@ -1,78 +1,95 @@
 -- 1.Obtén el “Top 10” de productos por unidades vendidas y su ingreso total--
-SELECT p.id_producto, 
-       p.nombre,
-       SUM(cp.cantidad) AS unidades_vendidas,
-       SUM(cp.total) AS ingreso_total
-FROM compras_productos cp
-JOIN productos p ON cp.id_producto = p.id_producto
-GROUP BY p.id_producto, p.nombre
-ORDER BY unidades_vendidas DESC
+S-- 1. Obtén el “Top 10” de productos por unidades vendidas y su ingreso total
+
+SELECT p.nombre,
+    COUNT(cp.cantidad) AS cantidad,
+    SUM(cp.total) AS total
+FROM miscompras.productos p
+JOIN miscompras.compras_productos cp USING(id_producto)
+GROUP BY p.id_producto
+ORDER BY cantidad DESC
 LIMIT 10;
 
-
--- 2.Categorías con mayor número de productos vendidos --
-
-SELECT c.id_categoria, 
-       c.descripcion,
-       SUM(cp.cantidad) AS total_vendidos
-FROM compras_productos cp
-JOIN productos p ON cp.id_producto = p.id_producto
-JOIN categorias c ON p.id_categoria = c.id_categoria
-GROUP BY c.id_categoria, c.descripcion
-ORDER BY total_vendidos DESC;
-
--- 3.Clientes que han gastado más dinero --
-
-SELECT c.id, 
-       c.nombre, 
-       c.apellidos,
-       SUM(cp.total) AS gasto_total
-FROM clientes c
-JOIN compras co ON c.id = co.id_cliente
-JOIN compras_productos cp ON co.id_compra = cp.id_compra
-GROUP BY c.id, c.nombre, c.apellidos
-ORDER BY gasto_total DESC;
-
--- 4.Productos con menor stock disponible --
-
-SELECT id_producto, nombre, cantidad_stock
-FROM productos
-ORDER BY cantidad_stock ASC
-LIMIT 10;
-
---5. Promedio de gasto por compra --
-
-SELECT co.id_compra,
-       c.nombre,
-       c.apellidos,
-       SUM(cp.total) AS valor_total
-FROM compras co
-JOIN clientes c ON co.id_cliente = c.id
-JOIN compras_productos cp ON co.id_compra = cp.id_compra
-GROUP BY co.id_compra, c.nombre, c.apellidos
-ORDER BY valor_total DESC
-LIMIT 4;
-
---6.Ventas por cada mes del año --
+-- 2. Calcula el total pagado promedio por compra y la mediana aproximada
 
 SELECT 
-    EXTRACT(YEAR FROM co.fecha) AS año,
-    EXTRACT(MONTH FROM co.fecha) AS mes,
-    SUM(cp.total) AS ventas_totales
-FROM compras co
-JOIN compras_productos cp ON co.id_compra = cp.id_compra
-GROUP BY año, mes
-ORDER BY año, mes;
+    ROUND(AVG(t.total), 2) AS promedio_compra,
+    PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY t.total) AS mediana
+FROM (
+    SELECT c.id_compra, SUM(cp.total) AS total
+    FROM miscompras.compras c
+    JOIN miscompras.compras_productos cp USING(id_compra)
+    GROUP BY c.id_compra
+) t;
 
--- 10.Última compra por cliente--
+-- 3. Lista compras por cliente con gasto total y un ranking global de gasto
 
-SELECT c.id,
-       c.nombre,
-       c.apellidos,
-       MAX(co.fecha) AS ultima_compra
-FROM clientes c
-JOIN compras co ON c.id = co.id_cliente
-GROUP BY c.id, c.nombre, c.apellidos
-ORDER BY ultima_compra DESC;
+SELECT cl.id, cl.nombre || ' ' || cl.apellidos AS cliente,
+    COUNT(DISTINCT c.id_compra) AS compras,
+    SUM(cp.total) AS gasto_total,
+    RANK() OVER(ORDER BY SUM(cp.total) DESC) AS ranking_gasto
+FROM miscompras.clientes cl
+JOIN miscompras.compras c ON cl.id = c.id_cliente
+JOIN miscompras.compras_productos cp USING(id_compra)
+GROUP BY cl.id, cliente
+ORDER BY ranking_gasto;
 
+-- 4. Calcula por día el número de compras, ticket promedio y total
 
+WITH t AS (
+    SELECT
+        c.fecha::date AS dia,
+        c.id_compra,
+        SUM(cp.total) AS total_compra
+    FROM miscompras.compras c
+    JOIN miscompras.compras_productos cp USING(id_compra)
+    WHERE cp.estado = 1
+    GROUP BY c.fecha::date, c.id_compra
+)
+SELECT dia,
+    COUNT(id_compra) AS numero_compras,
+    ROUND(AVG(total_compra), 2) AS ticket_promedio,
+    SUM(total_compra) AS total_dia
+FROM t
+GROUP BY dia
+ORDER BY dia;
+
+-- 5. Realiza una búsqueda estilo e-commerce de productos activos y con stock cuyo nombre empiece por “caf”
+
+SELECT nombre AS producto,
+    cantidad_stock AS stock
+FROM miscompras.productos
+WHERE estado = 1
+    AND cantidad_stock > 0
+    AND nombre ILIKE 'caf%';
+
+-- 6. Devuelve los productos con el precio formateado como texto monetario usando concatenación `('||')` y `TO_CHAR(numeric, 'FM999G999G999D00')`, ordenando de mayor a menor precio.
+
+SELECT nombre,
+    '$' || TO_CHAR(precio_venta, 'FM999G999G999D00') AS precio
+FROM miscompras.productos
+ORDER BY precio_venta DESC;
+
+-- 7. Arma el “resumen de canasta” por compra: subtotal, `IVA al 19%` y total con IVA
+
+SELECT 
+    id_compra,
+    SUM(total) AS subtotal,
+    ROUND(SUM(total) * 0.19, 2) AS iva_19,
+    ROUND(SUM(total) * 1.19, 2) AS total
+FROM miscompras.compras_productos
+WHERE estado = 1
+GROUP BY id_compra
+ORDER BY id_compra;
+
+-- 8. Calcula la participación (%) de cada categoría en las ventas
+
+SELECT 
+    ca.descripcion,
+    ROUND(SUM(cp.total) * 100.0 / SUM(SUM(cp.total)) OVER(), 2)  AS porcentaje_participacion
+FROM miscompras.categorias ca
+JOIN miscompras.productos p USING(id_categoria)
+JOIN miscompras.compras_productos cp USING(id_producto)
+WHERE cp.estado = 1
+GROUP BY ca.id_categoria, ca.descripcion
+ORDER BY porcentaje_participacion DESC;
