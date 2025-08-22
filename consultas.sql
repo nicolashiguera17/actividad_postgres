@@ -206,3 +206,14 @@ SELECT
     INITCAP(TRIM(apellidos)) AS apellidos
 FROM miscompras.clientes
 ORDER BY apellidos, nombre;
+
+-- 18. Selecciona los productos cuyo `id_producto` es par
+
+SELECT 
+    id_producto,
+    nombre,
+    precio_venta
+FROM miscompras.productos
+WHERE id_producto % 2 = 0
+    AND estado = 1
+ORDER BY id_producto;
