@@ -235,3 +235,21 @@ GROUP BY c.id_compra, c.id_cliente, c.fecha;
 DROP VIEW IF EXISTS ventas_por_compra;
 
 SELECT * FROM ventas_por_compra;
+
+-- 20. Crea una vista materializada mensual mv_ventas_mensuales que agregue ventas por `DATE_TRUNC('month', fecha)
+
+CREATE MATERIALIZED VIEW mv_ventas_mensuales AS
+SELECT 
+    DATE_TRUNC('month', c.fecha) AS mes,
+    COUNT(DISTINCT c.id_compra) AS num_compras,
+    COUNT(DISTINCT c.id_cliente) AS clientes_unicos,
+    SUM(cp.total) AS total_mes
+FROM miscompras.compras c
+JOIN miscompras.compras_productos cp USING (id_compra)
+WHERE cp.estado = 1
+GROUP BY DATE_TRUNC('month', co.fecha)
+ORDER BY mes;
+
+DROP MATERIALIZED VIEW IF EXISTS mv_ventas_mensuales;
+
+SELECT * FROM mv_ventas_mensuales;
