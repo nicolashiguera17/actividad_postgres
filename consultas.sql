@@ -1,4 +1,4 @@
--- 1 Obtén el “Top 10” de productos por unidades vendidas y su ingreso total--
+-- 1.Obtén el “Top 10” de productos por unidades vendidas y su ingreso total--
 SELECT p.id_producto, 
        p.nombre,
        SUM(cp.cantidad) AS unidades_vendidas,
@@ -10,7 +10,7 @@ ORDER BY unidades_vendidas DESC
 LIMIT 10;
 
 
--- 2 Categorías con mayor número de productos vendidos --
+-- 2.Categorías con mayor número de productos vendidos --
 
 SELECT c.id_categoria, 
        c.descripcion,
@@ -21,7 +21,8 @@ JOIN categorias c ON p.id_categoria = c.id_categoria
 GROUP BY c.id_categoria, c.descripcion
 ORDER BY total_vendidos DESC;
 
--- 3 Clientes que han gastado más dinero --
+-- 3.Clientes que han gastado más dinero --
+
 SELECT c.id, 
        c.nombre, 
        c.apellidos,
@@ -31,3 +32,12 @@ JOIN compras co ON c.id = co.id_cliente
 JOIN compras_productos cp ON co.id_compra = cp.id_compra
 GROUP BY c.id, c.nombre, c.apellidos
 ORDER BY gasto_total DESC;
+
+-- 4.Productos con menor stock disponible --
+
+SELECT id_producto, nombre, cantidad_stock
+FROM productos
+ORDER BY cantidad_stock ASC
+LIMIT 10;
+
+
