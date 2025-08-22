@@ -324,3 +324,26 @@ FROM miscompras.productos p
 JOIN miscompras.categorias ca USING (id_categoria)
 WHERE p.estado = 1
 ORDER BY categoria, posicion_precio;
+
+
+-- 25. Para cada cliente, muestra su gasto por compra, el gasto anterior y el delta entre compras por día 
+
+WITH gastos_diarios AS (
+    SELECT 
+        c.id_cliente,
+        c.fecha::date AS dia,
+        SUM(cp.total) AS gasto_dia
+    FROM miscompras.compras c
+    JOIN miscompras.compras_productos cp ON cp.id_compra = c.id_compra
+    WHERE cp.estado = 1
+    GROUP BY c.id_cliente, c.fecha::date
+)
+SELECT 
+    c.nombre || ' ' || c.apellidos AS cliente,
+    gd.dia,
+    gd.gasto_dia,
+    LAG(gd.gasto_dia) OVER (PARTITION BY gd.id_cliente ORDER BY gd.dia) AS gasto_anterior,
+    gd.gasto_dia - LAG(gd.gasto_dia) OVER (PARTITION BY gd.id_cliente ORDER BY gd.dia) AS delta_gasto
+FROM gastos_diarios gd
+JOIN miscompras.clientes c ON c.id = gd.id_cliente
+ORDER BY c.nombre, gd.dia;
