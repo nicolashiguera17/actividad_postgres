@@ -127,3 +127,14 @@ WHERE cp.estado = 1
 GROUP BY p.nombre, ca.descripcion, cp.cantidad
 ORDER BY cantidad DESC
 LIMIT 2;
+
+-- 12. Calcula ventas mensuales
+SELECT 
+    DATE_TRUNC('month', c.fecha) AS mes,
+    COUNT(DISTINCT c.id_compra) AS num_compras,
+    SUM(cp.total) AS total_ventas
+FROM miscompras.compras c
+JOIN miscompras.compras_productos cp USING (id_compra)
+WHERE cp.estado = 1
+GROUP BY DATE_TRUNC('month', c.fecha)
+ORDER BY mes;
