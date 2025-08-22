@@ -138,3 +138,20 @@ JOIN miscompras.compras_productos cp USING (id_compra)
 WHERE cp.estado = 1
 GROUP BY DATE_TRUNC('month', c.fecha)
 ORDER BY mes;
+
+
+-- 13. Lista productos que nunca se han vendido
+
+SELECT 
+    p.nombre,
+    p.precio_venta,
+    p.cantidad_stock
+FROM miscompras.productos p
+WHERE p.estado = 1
+    AND NOT EXISTS (
+        SELECT 1
+        FROM miscompras.compras_productos cp
+        WHERE cp.id_producto = p.id_producto
+            AND cp.estado = 1
+    )
+ORDER BY p.nombre;
