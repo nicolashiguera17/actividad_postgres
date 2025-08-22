@@ -64,3 +64,15 @@ JOIN compras_productos cp ON co.id_compra = cp.id_compra
 GROUP BY año, mes
 ORDER BY año, mes;
 
+-- 10.Última compra por cliente--
+
+SELECT c.id,
+       c.nombre,
+       c.apellidos,
+       MAX(co.fecha) AS ultima_compra
+FROM clientes c
+JOIN compras co ON c.id = co.id_cliente
+GROUP BY c.id, c.nombre, c.apellidos
+ORDER BY ultima_compra DESC;
+
+
