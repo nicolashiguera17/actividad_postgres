@@ -155,3 +155,25 @@ WHERE p.estado = 1
             AND cp.estado = 1
     )
 ORDER BY p.nombre;
+
+-- 14. Identifica clientes que, al comprar “café”, también compran “pan” en la misma compra
+
+SELECT DISTINCT
+    c.id_compra,
+    cl.nombre || ' ' || cl.apellidos AS cliente,
+    c.fecha
+FROM clientes cl
+JOIN miscompras.compras c ON c.id_cliente = cl.id
+JOIN miscompras.compras_productos cp ON cp.id_compra = c.id_compra
+JOIN miscompras.productos p ON cp.id_producto = p.id_producto
+WHERE p.nombre ILIKE 'cafe%'
+    AND cp.estado = 1
+    AND EXISTS (
+        SELECT 1
+        FROM miscompras.compras_productos cp2
+        JOIN miscompras.productos p2 ON cp2.id_producto = p2.id_producto
+        WHERE cp2.id_compra = c.id_compra
+            AND p2.nombre ILIKE 'pan%'
+            AND cp2.estado = 1
+    )
+ORDER BY c.fecha;
