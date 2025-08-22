@@ -105,3 +105,14 @@ SELECT nombre AS producto,
 FROM miscompras.productos
 WHERE estado = 1
 ORDER BY cantidad_stock ASC
+
+
+-- 10. Obtén la última compra por cliente
+SELECT DISTINCT ON (c.id_cliente)
+    cl.nombre || ' ' || cl.apellidos AS nombre,
+    c.fecha AS ultima_compra
+FROM miscompras.clientes cl
+JOIN compras c ON c.id_cliente = cl.id
+JOIN compras_productos cp ON cp.id_compra = c.id_compra
+WHERE cp.estado = 1
+ORDER BY c.id_cliente, c.fecha DESC;
