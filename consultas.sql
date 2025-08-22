@@ -253,3 +253,22 @@ ORDER BY mes;
 DROP MATERIALIZED VIEW IF EXISTS mv_ventas_mensuales;
 
 SELECT * FROM mv_ventas_mensuales;
+
+-- 21. Recalcula el stock descontando lo vendido a partir de un `UPDATE ... FROM (SELECT ... GROUP BY ...)`
+
+UPDATE productos 
+SET cantidad_stock = GREATEST(
+    COALESCE(cantidad_stock, 0) - COALESCE(vendido.total_vendido, 0), 
+    0
+)
+FROM (
+    SELECT 
+        id_producto,
+        SUM(cantidad) AS total_vendido
+    FROM miscompras.compras_productos
+    WHERE estado = 1
+    GROUP BY id_producto
+) AS vendido
+WHERE productos.id_producto = vendido.id_producto;
+
+SELECT * FROM productos;
