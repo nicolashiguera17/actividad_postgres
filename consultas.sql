@@ -177,3 +177,14 @@ WHERE p.nombre ILIKE 'cafe%'
             AND cp2.estado = 1
     )
 ORDER BY c.fecha;
+
+-- 15. Estima el margen porcentual “simulado” de un producto
+
+SELECT 
+    nombre,
+    precio_venta,
+    ROUND(precio_venta * 0.5, 2) AS costo_estimado,
+    ROUND(((precio_venta - (precio_venta * 0.5)) / precio_venta) * 100, 1) AS margen_porcentual
+FROM miscompras.productos
+WHERE estado = 1
+ORDER BY margen_porcentual DESC;
