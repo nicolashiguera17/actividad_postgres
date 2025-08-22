@@ -40,4 +40,16 @@ FROM productos
 ORDER BY cantidad_stock ASC
 LIMIT 10;
 
+--5. Promedio de gasto por compra --
+
+SELECT co.id_compra,
+       c.nombre,
+       c.apellidos,
+       SUM(cp.total) AS valor_total
+FROM compras co
+JOIN clientes c ON co.id_cliente = c.id
+JOIN compras_productos cp ON co.id_compra = cp.id_compra
+GROUP BY co.id_compra, c.nombre, c.apellidos
+ORDER BY valor_total DESC
+LIMIT 4;
 
