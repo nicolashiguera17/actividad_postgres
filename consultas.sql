@@ -53,3 +53,14 @@ GROUP BY co.id_compra, c.nombre, c.apellidos
 ORDER BY valor_total DESC
 LIMIT 4;
 
+--6.Ventas por cada mes del año --
+
+SELECT 
+    EXTRACT(YEAR FROM co.fecha) AS año,
+    EXTRACT(MONTH FROM co.fecha) AS mes,
+    SUM(cp.total) AS ventas_totales
+FROM compras co
+JOIN compras_productos cp ON co.id_compra = cp.id_compra
+GROUP BY año, mes
+ORDER BY año, mes;
+
